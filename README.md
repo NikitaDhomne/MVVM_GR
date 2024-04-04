@@ -1,4 +1,4 @@
-# gr_assignment
+# MVVM
 
 A new Flutter project.
 
