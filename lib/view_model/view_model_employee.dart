@@ -3,7 +3,7 @@ import 'package:gr_assignment/model/employee_model.dart';
 import 'package:gr_assignment/respository/employee_repository.dart';
 
 class EmployeeViewModel with ChangeNotifier {
-  final EmployeeRepository employeeRepository;
+  final EmployeeRepository employeeRepository; // Use Repository if included
 
   bool _isLoading = false;
   EmployeeModel? _employee;
@@ -16,21 +16,22 @@ class EmployeeViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  EmployeeViewModel(this.employeeRepository);
+  EmployeeViewModel(this.employeeRepository); // Inject Repository if included
 
   Future<void> fetchData() async {
     _isLoading = true;
-    notifyListeners();
+    notifyListeners(); // Notify UI of loading state change
 
     try {
       final employeeModel = await employeeRepository.getEmployee();
-      _employee = employeeModel;
+      _employee = employeeModel; // Assign the entire EmployeeModel
     } on Exception catch (e) {
-      print(e);
-      throw e;
+      // Handle error gracefully (e.g., show error message)
+      print(e); // Log error for debugging
+      throw e; // Re-throw the exception to handle it in the UI
     } finally {
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // Notify UI of data update or error
     }
   }
 }

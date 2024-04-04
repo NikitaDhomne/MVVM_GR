@@ -28,21 +28,6 @@ class _EmployeeViewState extends State<EmployeeView> {
 
   Future<void> _loadData() async {
     final employeeData = await _loadEmployeeData();
-    final prefs = await SharedPreferences.getInstance();
-    final savedEditedData = prefs.getString('edited_employee_data');
-
-    if (savedEditedData != null) {
-      final parsedData = jsonDecode(savedEditedData) as Map<String, dynamic>;
-      final editedEmployee = Data.fromJson(parsedData);
-
-      // Find the corresponding employee in the list and update
-      final index =
-          employeeData.indexWhere((emp) => emp.id == editedEmployee.id);
-      if (index != -1) {
-        employeeData[index] = editedEmployee;
-      }
-    }
-
     setState(() {
       _viewModel.employee = EmployeeModel(data: employeeData);
     });
@@ -58,7 +43,7 @@ class _EmployeeViewState extends State<EmployeeView> {
   }
 
   void _deleteEmployee(int employeeId) async {
-    // Check viewModel.employee is not null before accessing data
+    // Ensure viewModel.employee is not null before accessing data
     if (_viewModel.employee?.data == null) return;
 
     final index =
@@ -84,6 +69,7 @@ class _EmployeeViewState extends State<EmployeeView> {
   TextEditingController _salaryController = TextEditingController();
 
   void _showEditDialog(Data employee) {
+    // Create a copy of the employee data to avoid modifying original list
     final editedEmployee = employee.copyWith(
       employeeName: employee.employeeName,
       employeeAge: employee.employeeAge,
@@ -133,16 +119,19 @@ class _EmployeeViewState extends State<EmployeeView> {
           ),
           TextButton(
             onPressed: () {
-              _saveEmployeeData(editedEmployee);
+              // Implement logic to update employee data (e.g., call API)
+              // Consider showing a loading indicator or success/error message
+              Navigator.pop(context);
 
-              final index = _viewModel.employee?.data
+              // Update UI locally for a smoother experience (optional)
+              dynamic index = _viewModel.employee?.data
                   ?.indexWhere((emp) => emp.id == employee.id);
               if (index != -1) {
                 setState(() {
-                  _viewModel.employee!.data![index!] = editedEmployee;
+                  _viewModel.employee!.data![index] = editedEmployee;
+                  _saveEmployeeData(_viewModel.employee!.data!);
                 });
               }
-              Navigator.pop(context);
             },
             child: Text('Save'),
           ),
@@ -172,7 +161,7 @@ class _EmployeeViewState extends State<EmployeeView> {
   Widget _buildContent(EmployeeModel? employeeData) {
     if (employeeData == null) {
       return Center(
-        child: Text('Error loading data'),
+        child: Text('Error loading data'), // Handle error gracefully
       );
     }
 
@@ -198,9 +187,9 @@ class _EmployeeViewState extends State<EmployeeView> {
           ),
           onDismissed: (direction) => _deleteEmployee(employee.id!),
           child: isDeleted
-              ? Container()
+              ? Container() // Hide deleted items from UI
               : Card(
-                  color: _getColorByIndex(index),
+                  color: _getColorByIndex(index), // Use a method to set color
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundImage: AssetImage('images/profile.jpeg'),
@@ -238,10 +227,10 @@ class _EmployeeViewState extends State<EmployeeView> {
     }
   }
 
-  void _saveEmployeeData(Data editedEmployee) async {
+  void _saveEmployeeData(List<Data> employeeData) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonData = jsonEncode(editedEmployee.toJson());
-    await prefs.setString('edited_employee_data', jsonData);
+    final jsonData = jsonEncode(employeeData.map((e) => e.toJson()).toList());
+    await prefs.setString('employee_data', jsonData);
   }
 
   // Load employee data from local storage
